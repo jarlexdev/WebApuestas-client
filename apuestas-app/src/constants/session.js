@@ -1,1 +1,1 @@
-export const CORE_API_URL = "http://127.0.0.1:8002/Apuestas";
+export const CORE_API_URL = "https://betapps.online/api/Apuestas";
