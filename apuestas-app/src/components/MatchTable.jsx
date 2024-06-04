@@ -23,6 +23,7 @@ export function MatchTable() {
             <h2 className="text-xl font-bold text-white">Partidos próximos</h2>
             <div className="mt-5">
                 {partido ? <MatchBet partido={partido} /> : <p>No hay partidos</p>}
+
             </div>
         </div>
     );

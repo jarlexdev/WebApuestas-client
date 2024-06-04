@@ -6,17 +6,33 @@ import { BetPopUp } from "./BetPopUp";
 import { getAllEquipoLocal } from "@/services/equipolocal.service";
 import { getAllEquipoVisitante } from "@/services/equipovisitante.service";
 import { TeamHero } from "./TeamHero";
+import { getApuestasByUserId } from "@/services/bet.service";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export function MatchBet({ partido }) {
     const [equipoLocal, setEquipoLocal] = useState(null);
     const [equipoVisitante, setEquipoVisitante] = useState(null);
     const [dateMatch, setDateMatch] = useState();
     const imageUrl = "https://e00-elmundo.uecdn.es/assets/multimedia/imagenes/2021/06/24/16245558914634.jpg";
+    const userId = localStorage.getItem("userId");
+    const [hasBet, setHasBet] = useState(false);
 
     useEffect(() => {
+        async function getApuestasUser() {
+            const apuestasFetched = await getApuestasByUserId(userId);
+            if (apuestasFetched.data.length > 0) {
+                const hasBet = apuestasFetched.data.some((apuesta) => apuesta.idPartido === partido.idPartido);
+                setHasBet(hasBet);
+            }
+
+        }
+
         async function getEquipos() {
             const equipoLocalFetched = await getAllEquipoLocal();
             const equipoVisitanteFetched = await getAllEquipoVisitante();
+
+
 
             equipoLocalFetched.data.forEach((equipo) => {
                 if (equipo.idEquipoLocal === partido.idEquipoLocal) {
@@ -48,6 +64,7 @@ export function MatchBet({ partido }) {
 
         getEquipos();
         parseDate();
+        getApuestasUser();
     }, [partido.idEquipoLocal, partido.idEquipoVisitante, partido.fechaPartido]);
 
     const [showPopUp, setShowPopUp] = useState(false);
@@ -77,7 +94,9 @@ export function MatchBet({ partido }) {
                     <p className="mt-2 text-lg">Place a bet on this match today, get instant cashback and participate in various raffles.</p>
                 </div>
                 <div className="w-full mt-5 flex justify-center">
-                    <button className="w-full max-w-xs bg-gray-800 hover:bg-gray-800 transition-all duration-500 hover:scale-105 py-3 rounded-xl text-lg font-semibold" onClick={handleShowPopUp}>Bet now</button>
+                    <button className="w-full max-w-xs bg-gray-800 hover:bg-gray-800 transition-all duration-500 hover:scale-105 py-3 rounded-xl text-lg font-semibold" onClick={
+                        hasBet ? () => { toast("Ya haz apostado por este partido") } : handleShowPopUp
+                    }>Apostar</button>
                 </div>
             </div>
             {showPopUp &&

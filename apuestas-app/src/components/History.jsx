@@ -12,7 +12,7 @@ export function History() {
     useEffect(() => {
         async function getApuestas() {
             const apuestasFetched = await getApuestasByUserId(userId);
-            const apuestasInfo = await Promise.all(apuestasFetched.data.map(async (apuesta) => {
+            const apuestasInfo = await Promise.all(apuestasFetched.length > 0 ? apuestasFetched.data.map(async (apuesta) => {
                 const partido = await getPartidoById(apuesta.idPartido);
                 return {
                     ...apuesta,
@@ -24,7 +24,7 @@ export function History() {
                     marcadorLocal: apuesta.marcadorLocalFinal,
                     marcadorVisitante: apuesta.marcadorVisitanteFinal,
                 };
-            }));
+            }) : []);
 
             // Invertir el orden de las apuestas
             apuestasInfo.reverse();
