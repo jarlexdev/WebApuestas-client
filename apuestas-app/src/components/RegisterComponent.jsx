@@ -7,6 +7,7 @@ import { createUser } from "@/services/user.service";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useRouter } from "next/navigation";
+import { validateUser } from "@/validators/uservalidator";
 
 export function RegisterComponent() {
     const router = useRouter();
@@ -41,11 +42,16 @@ export function RegisterComponent() {
         setUser({ ...user, apellidoUsuario: e.target.value });
     }
 
-
-
     async function submitChanges(e) {
+        e.preventDefault();
+
+        const { isValid, message } = validateUser(user);
+        if (!isValid) {
+            toast.error(message);
+            return;
+        }
+
         try {
-            e.preventDefault();
             const response = await createUser(user);
             if (response.status) {
                 toast.success("Usuario creado correctamente");
@@ -53,13 +59,11 @@ export function RegisterComponent() {
             } else {
                 toast.error("Error al crear usuario");
             }
-        }
-        catch (error) {
+        } catch (error) {
             console.error(error);
+            toast.error("Error al crear usuario");
         }
     }
-
-
 
     return (
         <div className="flex flex-col justify-center items-center ">
@@ -73,7 +77,7 @@ export function RegisterComponent() {
                 <Input placeholder={"Contraseña"} type={"password"} value={user.clave} onChange={getPassword} />
                 <p className="gap-2 flex flex-row">¿Ya tienes una cuenta?
                     <Link href="/" className="text-blue-700">
-                        Registrarse
+                        Inicia sesión
                     </Link>
                 </p>
                 <button className="bg-gray-900 px-5 py-2 rounded-lg" type="submit">Iniciar sesión</button>
@@ -84,4 +88,4 @@ export function RegisterComponent() {
             </div>
         </div>
     );
-};
+}

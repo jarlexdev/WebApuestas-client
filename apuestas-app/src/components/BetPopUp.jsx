@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState, useEffect } from 'react';
 import { FaTimes } from "react-icons/fa";
 import { getUserById } from "@/services/user.service";
@@ -6,62 +6,73 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createApuesta } from '@/services/bet.service';
+import { validateBet } from '@/validators/betvalidator';
+import Link from 'next/link';
 
 export function BetPopUp({ team1, team2, onClose, partido }) {
 
 	const [user, setUser] = useState({});
-	const [betQuantity, setBetQuantity] = useState(0);
-	const [predictionLocal, setPredictionLocal] = useState(0);
-	const [predictionVisitante, setPredictionVisitante] = useState(0);
+	const [betQuantity, setBetQuantity] = useState("");
+	const [predictionLocal, setPredictionLocal] = useState("");
+	const [predictionVisitante, setPredictionVisitante] = useState("");
 	const router = useRouter();
 
 	const handlePredictionLocal = (event) => {
-		const value = event.target.value;
-		if (value.length > 2) {
-			event.target.value = value.slice(0, 2);
-		} else {
-			setPredictionLocal(value);
-		}
-	}
+		let value = event.target.value.replace(/^0+/, '');
+		value = Math.max(0, Math.min(99, value || 0));
+		setPredictionLocal(value);
+	};
 
 	const handlePredictionVisitante = (event) => {
-		const value = event.target.value;
-		if (value.length > 2) {
-			event.target.value = value.slice(0, 2);
+		let value = event.target.value.replace(/^0+/, '');
+		value = Math.max(0, Math.min(99, value || 0));
+		setPredictionVisitante(value);
+	};
+
+	const handleBetQuantity = (e) => {
+		let value = e.target.value.replace(/^0+/, '');
+		value = Math.max(0, value || 0);
+		if (value > user.puntosUser) {
+			toast.error("No tienes suficientes puntos para realizar esta apuesta");
 		} else {
-			setPredictionVisitante(value);
+			setBetQuantity(value);
 		}
-	}
-
-
+	};
 
 	const handleBet = () => {
-		if (betQuantity > user.puntosUser || betQuantity === 0) {
-			toast.error("No puedes apostar esa cantidad de puntos");
-		} else {
-			const bet = {
-				idPartido: partido.idPartido,
-				idUsuario: user.idUsuario,
-				CantidadApostada: betQuantity,
-				idEstadoApuesta: 2,
-				prediccionEquipoLocal: predictionLocal,
-				prediccionEquipoVisitante: predictionVisitante,
-			};
-			try {
-				createApuesta(bet).then((response) => {
-					if (response.status) {
-						toast.success("Apuesta realizada con éxito");
-						onClose();
-					} else {
-						toast.error("Error al realizar la apuesta");
-					}
-				});
-			}
-			catch (error) {
-				toast.error("Error al realizar la apuesta");
-			}
+		const { isValid, message } = validateBet(predictionLocal, predictionVisitante, betQuantity, user.puntosUser);
+		if (!isValid) {
+			toast.error(message);
+			return;
 		}
-	}
+
+		const bet = {
+			idPartido: partido.idPartido,
+			idUsuario: user.idUsuario,
+			CantidadApostada: betQuantity,
+			idEstadoApuesta: 2,
+			prediccionEquipoLocal: predictionLocal,
+			prediccionEquipoVisitante: predictionVisitante,
+		};
+
+		try {
+			createApuesta(bet).then((response) => {
+				if (response.status) {
+					toast.success(
+						<div className='flex flex-col items-center justify-center'>
+							<p>Apuesta realizada correctamente</p>
+							<Link href={"/dashboard/bets"} className='bg-green-800 px-5 py-2 rounded-lg text-white'>Ver apuestas</Link>
+						</div>
+					);
+					onClose();
+				} else {
+					toast.error("Error al realizar la apuesta");
+				}
+			});
+		} catch (error) {
+			toast.error("Error al realizar la apuesta");
+		}
+	};
 
 	useEffect(() => {
 		const userId = localStorage.getItem("userId");
@@ -79,16 +90,6 @@ export function BetPopUp({ team1, team2, onClose, partido }) {
 			getUser();
 		}
 	}, []);
-
-	function handleBetQuantity(e) {
-		const value = e.target.value;
-		if (value > user.puntosUser) {
-			toast.error("No tienes suficientes puntos para realizar esta apuesta");
-		} else {
-			setBetQuantity(value);
-		}
-	}
-
 
 	return (
 		<div className="bg-slate-900 p-10 rounded-xl shadow-xl w-full mx-auto">
@@ -132,4 +133,4 @@ export function BetPopUp({ team1, team2, onClose, partido }) {
 
 		</div>
 	);
-};
+}

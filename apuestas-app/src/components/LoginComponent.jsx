@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import Input from "./Input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -6,6 +7,7 @@ import { useState, useEffect } from "react";
 import { loginUser } from "@/services/user.service";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { validateLogin } from "@/validators/uservalidator";
 
 export function LoginComponent() {
     const router = useRouter();
@@ -36,6 +38,12 @@ export function LoginComponent() {
     async function handleSubmit(e) {
         e.preventDefault();
 
+        const { isValid, message } = validateLogin(user);
+        if (!isValid) {
+            toast.error(message);
+            return;
+        }
+
         try {
             const response = await loginUser(user);
             if (response.status) {
@@ -44,10 +52,10 @@ export function LoginComponent() {
                 localStorage.setItem("userRole", response.user.idRol);
                 router.push("/dashboard");
             } else {
-                toast.error("Credenciales invalidas, por favor intente de nuevo");
+                toast.error("Credenciales inválidas, por favor intente de nuevo");
             }
         } catch (error) {
-            toast.success("Error al iniciar sesión " + error);
+            toast.error("Error al iniciar sesión " + error);
         }
     }
 
@@ -70,4 +78,4 @@ export function LoginComponent() {
             </div>
         </div>
     );
-};
+}
