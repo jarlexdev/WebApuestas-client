@@ -11,29 +11,52 @@ export function History() {
 
     useEffect(() => {
         async function getApuestas() {
-            const apuestasFetched = await getApuestasByUserId(userId);
-            const apuestasInfo = await Promise.all(apuestasFetched.length > 0 ? apuestasFetched.data.map(async (apuesta) => {
-                const partido = await getPartidoById(apuesta.idPartido);
-                return {
-                    ...apuesta,
-                    equipoVisitante: partido.data.nombreEquipoVisitante,
-                    equipoLocal: partido.data.nombreEquipoLocal,
-                    puntosApostados: apuesta.CantidadApostada,
-                    prediccionLocal: apuesta.prediccionEquipoLocal,
-                    prediccionVisitante: apuesta.prediccionEquipoVisitante,
-                    marcadorLocal: apuesta.marcadorLocalFinal,
-                    marcadorVisitante: apuesta.marcadorVisitanteFinal,
-                };
-            }) : []);
+            try {
+                const apuestasFetched = await getApuestasByUserId(userId);
+                console.log(apuestasFetched.length);
+                if (apuestasFetched && apuestasFetched.data.length > 0) {
+                    const apuestasInfo = await Promise.all(apuestasFetched.data.map(async (apuesta) => {
+                        const partido = await getPartidoById(apuesta.idPartido);
 
-            // Invertir el orden de las apuestas
-            apuestasInfo.reverse();
+                        if (partido && partido.data) {
+                            return {
+                                ...apuesta,
+                                equipoVisitante: partido.data.nombreEquipoVisitante,
+                                equipoLocal: partido.data.nombreEquipoLocal,
+                                puntosApostados: apuesta.CantidadApostada,
+                                prediccionLocal: apuesta.prediccionEquipoLocal,
+                                prediccionVisitante: apuesta.prediccionEquipoVisitante,
+                                marcadorLocal: apuesta.marcadorLocalFinal,
+                                marcadorVisitante: apuesta.marcadorVisitanteFinal,
+                            };
+                        } else {
+                            return apuesta;
+                        }
+                    }));
 
-            setApuestaHistoryInfo(apuestasInfo);
+                    // Invertir el orden de las apuestas
+                    apuestasInfo.reverse();
+                    console.log("apuestasInfo:", apuestasInfo);
+
+                    setApuestaHistoryInfo(apuestasInfo);
+                } else {
+
+                    setApuestaHistoryInfo([]);
+                }
+            } catch (error) {
+                console.error("Error fetching apuestas:", error);
+                setApuestaHistoryInfo([]);
+            }
         }
 
-        getApuestas();
+        if (userId) {
+            getApuestas();
+        } else {
+            console.log("userId es undefined");
+        }
     }, [userId]);
+
+
 
     const toggleSection = (section) => {
         setActiveSection(activeSection === section ? null : section);
@@ -41,7 +64,7 @@ export function History() {
 
     const activeBets = apuestaHistoryInfo.filter(apuesta => apuesta.marcadorLocal === null);
     const historicalBets = apuestaHistoryInfo.filter(apuesta => apuesta.marcadorLocal !== null);
-
+    console.log(activeBets);
     return (
         <div className="py-5">
             <h1 className="text-xl font-medium my-4 text-center">Historial de apuestas</h1>
@@ -64,6 +87,7 @@ export function History() {
                                     <p className="font-bold text-xl">VS</p>
                                     <TeamHero isReversed={true} hasResult={false} equipo={apuesta.equipoVisitante} />
                                 </div>
+
                             )) : <p className="text-center">No hay apuestas activas</p>}
                         </div>
                     )}

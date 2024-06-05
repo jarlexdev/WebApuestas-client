@@ -21,9 +21,11 @@ export function MatchBet({ partido }) {
     useEffect(() => {
         async function getApuestasUser() {
             const apuestasFetched = await getApuestasByUserId(userId);
-            if (apuestasFetched.data.length > 0) {
-                const hasBet = apuestasFetched.data.some((apuesta) => apuesta.idPartido === partido.idPartido);
-                setHasBet(hasBet);
+            if (apuestasFetched.status === true) {
+                if (apuestasFetched.data.length > 0) {
+                    const hasBet = apuestasFetched.data.some(apuesta => apuesta.idPartido === partido.idPartido);
+                    setHasBet(hasBet);
+                }
             }
 
         }
