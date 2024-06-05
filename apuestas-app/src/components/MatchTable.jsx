@@ -13,6 +13,7 @@ export function MatchTable() {
         async function fetchPartidos() {
             try {
                 const response = await getPartidosNoFinalizados();
+                console.log(response);
                 if (response.status) {
                     const partidosNoFinalizados = response.data;
                     if (partidosNoFinalizados.length > 0) {

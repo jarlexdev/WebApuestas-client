@@ -76,7 +76,7 @@ export const getFinalizados = async () => {
 };
 
 export const getPartidosNoFinalizados = async () => {
-  return api.get(`/partidos-no-finalizados`)
+  return api.get(`finalizacion/partidos-no-finalizados`)
     .then((response) => {
       return response.data;
     })
