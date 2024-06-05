@@ -74,3 +74,13 @@ export const getFinalizados = async () => {
       return error.response.data;
     });
 };
+
+export const getPartidosNoFinalizados = async () => {
+  return api.get(`/partidos-no-finalizados`)
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      return error.response.data;
+    });
+};
