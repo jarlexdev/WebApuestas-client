@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAllApuestas, deleteApuesta } from "@/services/bet.service";
+import { getUserById } from "@/services/user.service";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
@@ -15,7 +16,7 @@ import {
 
 export default function ApuestasPage() {
     const [apuestas, setApuestas] = useState([]);
-    const [user, setUser] = useState({});
+    const [usuarios, setUsuarios] = useState({});
 
     useEffect(() => {
         fetchApuestas();
@@ -25,8 +26,19 @@ export default function ApuestasPage() {
         try {
             const response = await getAllApuestas();
             if (response.status) {
-                setApuestas(response.data);
+                const apuestasData = response.data;
+                const userPromises = apuestasData.map(apuesta => getUserById(apuesta.idUsuario));
+                const users = await Promise.all(userPromises);
 
+                const usuariosData = {};
+                users.forEach((user, index) => {
+                    if (user.status) {
+                        usuariosData[apuestasData[index].idUsuario] = user.data.nombreUsuario;
+                    }
+                });
+
+                setUsuarios(usuariosData);
+                setApuestas(apuestasData);
             } else {
                 toast.error(response.mensaje);
             }
@@ -35,15 +47,6 @@ export default function ApuestasPage() {
             toast.error("Error al obtener las apuestas");
         }
     };
-
-    async function getUserById(id) {
-        const response = await getUserById(id);
-        if (response.status) {
-            return response.data;
-            console.log(response.data);
-        }
-    }
-
 
     const handleDeleteApuesta = async (id) => {
         try {
@@ -67,29 +70,20 @@ export default function ApuestasPage() {
                 <TableHeader className="text-white">
                     <TableRow>
                         <TableHead className="w-[10%]">ID</TableHead>
+                        <TableHead className="w-[30%]">ID Partido</TableHead>
+                        <TableHead className="w-[30%]">Cantidad</TableHead>
+                        <TableHead className="w-[30%]">Usuario</TableHead>
 
-                        <TableHead className="w-[20%]">ID Partido</TableHead>
-                        <TableHead className="w-[20%]">Cantidad</TableHead>
-                        <TableHead className="w-[20%]">ID Usuario</TableHead>
-                        <TableHead>Acciones</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {apuestas.map((apuesta) => (
-                        <TableRow key={apuesta.idApuesta}>
+                        <TableRow key={apuesta.idApuestas}>
                             <TableCell>{apuesta.idApuestas}</TableCell>
-
                             <TableCell>{apuesta.idPartido}</TableCell>
                             <TableCell>{apuesta.CantidadApostada}</TableCell>
-                            <TableCell>{apuesta.idUsuario}</TableCell>
-                            <TableCell>
-                                <button
-                                    className="bg-red-500 text-white px-2 py-1 rounded ml-2"
-                                    onClick={() => handleDeleteApuesta(apuesta.idApuesta)}
-                                >
-                                    Eliminar
-                                </button>
-                            </TableCell>
+                            <TableCell>{usuarios[apuesta.idUsuario] || "Cargando..."}</TableCell>
+
                         </TableRow>
                     ))}
                 </TableBody>
