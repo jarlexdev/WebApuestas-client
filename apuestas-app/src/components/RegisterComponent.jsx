@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useRouter } from "next/navigation";
 import { validateUser } from "@/validators/uservalidator";
+import CryptoJS from "crypto-js";
 
 export function RegisterComponent() {
     const router = useRouter();
@@ -51,8 +52,12 @@ export function RegisterComponent() {
             return;
         }
 
+        // Encriptar la contraseña antes de enviar
+        const encryptedPassword = CryptoJS.MD5(user.clave).toString();
+        const userWithEncryptedPassword = { ...user, clave: encryptedPassword };
+
         try {
-            const response = await createUser(user);
+            const response = await createUser(userWithEncryptedPassword);
             if (response.status) {
                 toast.success("Usuario creado correctamente");
                 router.push("/");

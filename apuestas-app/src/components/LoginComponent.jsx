@@ -8,6 +8,7 @@ import { loginUser } from "@/services/user.service";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { validateLogin } from "@/validators/uservalidator";
+import CryptoJS from "crypto-js";
 
 export function LoginComponent() {
     const router = useRouter();
@@ -17,7 +18,8 @@ export function LoginComponent() {
         const userRole = localStorage.getItem("userRole");
 
         if (userId && userRole) {
-            router.push("/dashboard");
+            const redirectPath = userRole === '2' ? "/admin" : "/dashboard";
+            router.push(redirectPath);
             toast.success("Tu inicio de sesión ha sido restaurado");
         }
     }, [router]);
@@ -44,13 +46,18 @@ export function LoginComponent() {
             return;
         }
 
+        // Encriptar la contraseña antes de enviarla
+        const encryptedPassword = CryptoJS.MD5(user.clave).toString();
+        const userWithEncryptedPassword = { ...user, clave: encryptedPassword };
+
         try {
-            const response = await loginUser(user);
+            const response = await loginUser(userWithEncryptedPassword);
             if (response.status) {
                 toast.success("Inicio de sesión exitoso");
                 localStorage.setItem("userId", response.user.idUsuario);
                 localStorage.setItem("userRole", response.user.idRol);
-                router.push("/dashboard");
+                const redirectPath = response.user.idRol === '2' ? "/admin" : "/dashboard";
+                router.push(redirectPath);
             } else {
                 toast.error("Credenciales inválidas, por favor intente de nuevo");
             }

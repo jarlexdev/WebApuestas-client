@@ -95,6 +95,7 @@ export default function Page() {
         try {
             const response = await deletePartido(id);
             fetchPartidos();
+            console.log(response);
             if (response.status) {
                 toast.success('Partido eliminado correctamente');
             } else {
