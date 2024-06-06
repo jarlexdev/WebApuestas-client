@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { validateLogin } from "@/validators/uservalidator";
 import CryptoJS from "crypto-js";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export function LoginComponent() {
     const router = useRouter();
@@ -28,6 +29,8 @@ export function LoginComponent() {
         userName: "",
         clave: ""
     });
+
+    const [showPassword, setShowPassword] = useState(false);
 
     function getUsername(e) {
         setUser({ ...user, userName: e.target.value });
@@ -56,7 +59,8 @@ export function LoginComponent() {
                 toast.success("Inicio de sesión exitoso");
                 localStorage.setItem("userId", response.user.idUsuario);
                 localStorage.setItem("userRole", response.user.idRol);
-                const redirectPath = response.user.idRol === '2' ? "/admin" : "/dashboard";
+                console.log(response.user.idRol);
+                const redirectPath = response.user.idRol === 2 ? "/admin" : "/dashboard";
                 router.push(redirectPath);
             } else {
                 toast.error("Credenciales inválidas, por favor intente de nuevo");
@@ -71,7 +75,16 @@ export function LoginComponent() {
             <h1 className="text-2xl z-10">BetApp login</h1>
             <form className="flex flex-col z-10 items-center my-5 gap-5" onSubmit={handleSubmit}>
                 <Input placeholder={"Usuario"} type={"text"} value={user.userName} onChange={getUsername} />
-                <Input placeholder={"Contraseña"} type={"password"} value={user.clave} onChange={getPassword} />
+                <div className="relative w-full">
+                    <Input placeholder={"Contraseña"} type={showPassword ? "text" : "password"} value={user.clave} onChange={getPassword} />
+                    <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-700"
+                        onClick={() => setShowPassword(!showPassword)}
+                    >
+                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                </div>
                 <p className="gap-2 flex flex-row">¿No tienes una aún?
                     <Link href="/register" className="text-blue-700">
                         Crea una
